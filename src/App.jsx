@@ -1,18 +1,30 @@
-import React from 'react';
-import Hero from './components/Hero';
-import HorizontalReel from './components/HorizontalReel';
-import Services from './components/Services';
-import Contact from './components/Contact';
+import EnhancedIntroCurtain from './components/EnhancedIntroCurtain';
+import Hero3D from './components/Hero3D';
+import WorkWall from './components/WorkWall';
+import CapabilitiesStrip from './components/CapabilitiesStrip';
+import TechProcess from './components/TechProcess';
+import CaseTicker from './components/CaseTicker';
 
 export default function App() {
   return (
-    <div className="min-h-screen w-full bg-slate-950 text-blue-50">
-      <Hero />
-      <HorizontalReel />
-      <Services />
-      <Contact />
-      <footer className="border-t border-blue-400/10 bg-slate-950/80 py-10 text-center">
-        <p className="text-sm text-blue-200/60">© {new Date().getFullYear()} Cloud Shaped Dream Studio — crafted with care.</p>
+    <div className="min-h-screen bg-slate-950 text-white font-sans">
+      {/* Enhanced intro curtain with hover shimmer */}
+      <EnhancedIntroCurtain />
+
+      {/* Hero 3D with hover-driven parallax and new Spline asset */}
+      <Hero3D />
+
+      {/* Our Work - unchanged */}
+      <WorkWall />
+
+      {/* Capabilities and process to lengthen the page without About sections */}
+      <CapabilitiesStrip />
+      <CaseTicker />
+      <TechProcess />
+
+      {/* Footer note only (no CTA form as requested) */}
+      <footer className="py-10 text-center text-sky-300/60 text-sm">
+        © {new Date().getFullYear()} Cloud Shaped Dream Studio
       </footer>
     </div>
   );
