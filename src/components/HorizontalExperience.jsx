@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Rocket, Sparkles, Film, Layers } from 'lucide-react';
 
@@ -6,25 +6,81 @@ import { Rocket, Sparkles, Film, Layers } from 'lucide-react';
   HorizontalExperience
   - Full-viewport horizontal scroller with snap points
   - Wheel-to-horizontal translation for desktop
-  - Touch/trackpad supported natively via overflow-x-auto
+  - Drag-to-scroll (mouse & touch) for precise control
 */
 export default function HorizontalExperience() {
   const scrollerRef = useRef(null);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
     const el = scrollerRef.current;
     if (!el) return;
 
+    // Wheel → horizontal
     const onWheel = (e) => {
-      // Translate vertical wheel into horizontal scroll for a smoother, guided pass
       if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
         el.scrollLeft += e.deltaY;
         e.preventDefault();
       }
     };
 
+    // Mouse drag support
+    const onMouseDown = (e) => {
+      isDraggingRef.current = true;
+      setDragging(true);
+      startXRef.current = e.pageX - el.offsetLeft;
+      scrollLeftRef.current = el.scrollLeft;
+    };
+    const onMouseMove = (e) => {
+      if (!isDraggingRef.current) return;
+      e.preventDefault();
+      const x = e.pageX - el.offsetLeft;
+      const walk = (x - startXRef.current) * 1; // sensitivity
+      el.scrollLeft = scrollLeftRef.current - walk;
+    };
+    const endMouseDrag = () => {
+      isDraggingRef.current = false;
+      setDragging(false);
+    };
+
+    // Touch drag support
+    const onTouchStart = (e) => {
+      isDraggingRef.current = true;
+      setDragging(true);
+      startXRef.current = e.touches[0].pageX - el.offsetLeft;
+      scrollLeftRef.current = el.scrollLeft;
+    };
+    const onTouchMove = (e) => {
+      if (!isDraggingRef.current) return;
+      const x = e.touches[0].pageX - el.offsetLeft;
+      const walk = (x - startXRef.current) * 1;
+      el.scrollLeft = scrollLeftRef.current - walk;
+    };
+    const endTouchDrag = () => {
+      isDraggingRef.current = false;
+      setDragging(false);
+    };
+
     el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
+    el.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', endMouseDrag);
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', endTouchDrag);
+
+    return () => {
+      el.removeEventListener('wheel', onWheel);
+      el.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', endMouseDrag);
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', endTouchDrag);
+    };
   }, []);
 
   const Panel = ({ title, subtitle, icon: Icon, gradient, children }) => (
@@ -58,7 +114,7 @@ export default function HorizontalExperience() {
 
       <div
         ref={scrollerRef}
-        className="relative overflow-x-auto overflow-y-hidden snap-x snap-mandatory no-scrollbar"
+        className={`relative overflow-x-auto overflow-y-hidden snap-x snap-mandatory no-scrollbar ${dragging ? 'cursor-grabbing select-none' : 'cursor-grab'}`}
         aria-label="Horizontal experience panels"
       >
         <div className="inline-flex items-stretch gap-6 px-6">
